@@ -5,18 +5,39 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import type { Event, Guest, RsvpStatus } from '@/lib/supabase'
 
+function CopyLinkButton({ token }: { token: string }) {
+  const [copied, setCopied] = useState(false)
+
+  async function copy() {
+    const url = `${window.location.origin}/rsvp/${token}`
+    await navigator.clipboard.writeText(url)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+
+  return (
+    <button
+      onClick={copy}
+      className="text-xs text-[#C4A090] hover:text-[#C4826A] transition-colors font-lato"
+      title="Copy RSVP link"
+    >
+      {copied ? '✓ Copied' : 'Copy link'}
+    </button>
+  )
+}
+
 const STATUS_LABEL: Record<RsvpStatus, string> = {
   pending: 'Pending',
   attending: 'Attending',
-  not_attending: 'Not Attending',
+  not_attending: 'Not Going',
   maybe: 'Maybe',
 }
 
 const STATUS_COLOR: Record<RsvpStatus, string> = {
-  pending: 'bg-stone-100 text-stone-500',
-  attending: 'bg-green-100 text-green-700',
-  not_attending: 'bg-red-100 text-red-600',
-  maybe: 'bg-yellow-100 text-yellow-700',
+  pending: 'bg-[#F5F0EB] text-[#C4A090]',
+  attending: 'bg-[#EAF2EA] text-[#5A8C5A]',
+  not_attending: 'bg-[#FBF0EE] text-[#C4826A]',
+  maybe: 'bg-[#FBF6EE] text-[#C49A4A]',
 }
 
 function formatDate(dateStr: string) {
@@ -70,13 +91,11 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
     const parsed = parseGuestInput(guestInput)
     if (!parsed.length) return
     setAddingGuests(true)
-
     const res = await fetch('/api/guests', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ event_id: id, guests: parsed }),
     })
-
     if (res.ok) {
       setGuestInput('')
       await loadData()
@@ -112,40 +131,49 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
   const maybe = guests.filter((g) => g.rsvp_status === 'maybe')
   const unsent = guests.filter((g) => !g.invite_sent_at)
 
-  if (loading) return <div className="min-h-screen bg-stone-50 flex items-center justify-center text-stone-400">Loading…</div>
-  if (!event) return <div className="min-h-screen bg-stone-50 flex items-center justify-center text-stone-400">Event not found</div>
+  if (loading) return (
+    <div className="min-h-screen bg-[#FAF7F2] flex items-center justify-center">
+      <p className="font-[family-name:var(--font-playfair)] text-[#C4A090] italic">Loading…</p>
+    </div>
+  )
+  if (!event) return (
+    <div className="min-h-screen bg-[#FAF7F2] flex items-center justify-center">
+      <p className="text-[#C4A090]">Event not found</p>
+    </div>
+  )
 
   return (
-    <div className="min-h-screen bg-stone-50">
-      <header className="bg-white border-b border-stone-200 px-6 py-4 flex items-center gap-3">
-        <Link href="/admin" className="text-stone-400 hover:text-stone-600 text-sm">
+    <div className="min-h-screen bg-[#FAF7F2]">
+      <header className="bg-white/80 backdrop-blur border-b border-[#EDE0D6] px-8 py-5 flex items-center gap-3">
+        <Link href="/admin" className="text-[#C4A090] hover:text-[#C4826A] text-sm font-lato transition-colors">
           ← Events
         </Link>
-        <span className="text-stone-300">/</span>
-        <h1 className="text-sm font-medium text-stone-900 truncate">{event.name}</h1>
+        <span className="text-[#EDE0D6]">/</span>
+        <span className="text-sm text-[#3D3530] font-lato truncate">{event.name}</span>
       </header>
 
-      <main className="max-w-3xl mx-auto px-6 py-10 space-y-10">
-        {/* Event info */}
+      <main className="max-w-2xl mx-auto px-6 py-12 space-y-12">
+
+        {/* Event header */}
         <section>
           {event.header_image_url && (
             <img
               src={event.header_image_url}
               alt=""
-              className="w-full h-48 object-cover rounded-xl mb-5"
+              className="w-full h-52 object-cover rounded-2xl mb-6"
             />
           )}
-          <h2 className="text-2xl font-semibold text-stone-900">{event.name}</h2>
-          <p className="text-stone-500 mt-1">{formatDate(event.date)}</p>
-          <p className="text-stone-500">{event.location}</p>
+          <p className="text-[#C4826A] tracking-[0.2em] text-xs uppercase mb-1">{event.location}</p>
+          <h2 className="font-[family-name:var(--font-playfair)] text-4xl text-[#3D3530]">{event.name}</h2>
+          <p className="text-[#C4A090] font-lato font-light mt-1">{formatDate(event.date)}</p>
           {event.amazon_wishlist_url && (
             <a
               href={event.amazon_wishlist_url}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-sm text-stone-400 hover:underline mt-1 inline-block"
+              className="text-xs text-[#C4826A] hover:text-[#A6614C] tracking-widest uppercase mt-3 inline-block underline underline-offset-4"
             >
-              Amazon Wishlist ↗
+              View Wishlist →
             </a>
           )}
         </section>
@@ -153,14 +181,14 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
         {/* RSVP stats */}
         <section className="grid grid-cols-4 gap-3">
           {[
-            { label: 'Attending', count: attending.length, color: 'bg-green-50 text-green-700' },
-            { label: 'Maybe', count: maybe.length, color: 'bg-yellow-50 text-yellow-700' },
-            { label: 'Not Going', count: notAttending.length, color: 'bg-red-50 text-red-600' },
-            { label: 'Pending', count: pending.length, color: 'bg-stone-100 text-stone-500' },
+            { label: 'Attending', count: attending.length, bg: 'bg-[#EAF2EA]', text: 'text-[#5A8C5A]' },
+            { label: 'Maybe', count: maybe.length, bg: 'bg-[#FBF6EE]', text: 'text-[#C49A4A]' },
+            { label: 'Not Going', count: notAttending.length, bg: 'bg-[#FBF0EE]', text: 'text-[#C4826A]' },
+            { label: 'Pending', count: pending.length, bg: 'bg-[#F5F0EB]', text: 'text-[#C4A090]' },
           ].map((s) => (
-            <div key={s.label} className={`rounded-xl p-4 text-center ${s.color}`}>
-              <p className="text-2xl font-bold">{s.count}</p>
-              <p className="text-xs mt-0.5 font-medium">{s.label}</p>
+            <div key={s.label} className={`rounded-2xl p-4 text-center ${s.bg}`}>
+              <p className={`text-3xl font-[family-name:var(--font-playfair)] ${s.text}`}>{s.count}</p>
+              <p className={`text-xs mt-1 font-lato tracking-wide ${s.text}`}>{s.label}</p>
             </div>
           ))}
         </section>
@@ -170,45 +198,45 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
           <button
             onClick={sendInvites}
             disabled={sendingInvites || unsent.length === 0}
-            className="px-4 py-2 bg-stone-900 text-white rounded-lg text-sm font-medium hover:bg-stone-800 disabled:opacity-40"
+            className="px-5 py-2.5 bg-[#C4826A] text-white rounded-full text-xs font-lato tracking-widest uppercase hover:bg-[#A6614C] disabled:opacity-40 transition-colors"
           >
             {sendingInvites ? 'Sending…' : `Send Invites (${unsent.length} unsent)`}
           </button>
           <button
             onClick={() => sendReminder('non_responders')}
             disabled={sendingReminder !== null || pending.length === 0}
-            className="px-4 py-2 bg-white border border-stone-300 text-stone-700 rounded-lg text-sm font-medium hover:bg-stone-50 disabled:opacity-40"
+            className="px-5 py-2.5 bg-white border border-[#EDE0D6] text-[#6B6560] rounded-full text-xs font-lato tracking-widest uppercase hover:border-[#C4826A] hover:text-[#C4826A] disabled:opacity-40 transition-colors"
           >
-            {sendingReminder === 'non_responders' ? 'Sending…' : `Remind Non-Responders (${pending.length})`}
+            {sendingReminder === 'non_responders' ? 'Sending…' : `Nudge Non-Responders (${pending.length})`}
           </button>
           <button
             onClick={() => sendReminder('attending')}
             disabled={sendingReminder !== null || attending.length === 0}
-            className="px-4 py-2 bg-white border border-stone-300 text-stone-700 rounded-lg text-sm font-medium hover:bg-stone-50 disabled:opacity-40"
+            className="px-5 py-2.5 bg-white border border-[#EDE0D6] text-[#6B6560] rounded-full text-xs font-lato tracking-widest uppercase hover:border-[#C4826A] hover:text-[#C4826A] disabled:opacity-40 transition-colors"
           >
             {sendingReminder === 'attending' ? 'Sending…' : `Remind Attendees (${attending.length})`}
           </button>
         </section>
 
         {message && (
-          <p className="text-sm text-green-700 bg-green-50 px-4 py-2 rounded-lg">{message}</p>
+          <p className="text-sm text-[#5A8C5A] bg-[#EAF2EA] px-5 py-3 rounded-xl font-lato">{message}</p>
         )}
 
         {/* Add guests */}
         <section>
-          <h3 className="text-lg font-semibold text-stone-900 mb-3">Add Guests</h3>
-          <p className="text-xs text-stone-400 mb-2">One per line: Name, Phone Number</p>
+          <p className="text-[#C4826A] tracking-[0.2em] text-xs uppercase mb-2">Add Guests</p>
+          <p className="text-xs text-[#C4A090] mb-3 font-lato">One per line — Name, Phone Number</p>
           <textarea
             value={guestInput}
             onChange={(e) => setGuestInput(e.target.value)}
-            placeholder={"John Smith, +15555550100\nJane Doe, +15555550101"}
+            placeholder={"Sarah Johnson, +15555550100\nEmily Davis, +15555550101"}
             rows={4}
-            className="w-full px-4 py-3 border border-stone-300 rounded-lg text-stone-900 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-stone-400"
+            className="w-full px-5 py-4 bg-white border border-[#EDE0D6] rounded-2xl text-[#3D3530] text-sm font-mono focus:outline-none focus:ring-2 focus:ring-[#C4826A]/20 focus:border-[#C4826A] transition-colors resize-none"
           />
           <button
             onClick={addGuests}
             disabled={addingGuests || !guestInput.trim()}
-            className="mt-2 px-4 py-2 bg-stone-900 text-white rounded-lg text-sm font-medium hover:bg-stone-800 disabled:opacity-40"
+            className="mt-3 px-6 py-2.5 bg-[#C4826A] text-white rounded-full text-xs font-lato tracking-widest uppercase hover:bg-[#A6614C] disabled:opacity-40 transition-colors"
           >
             {addingGuests ? 'Adding…' : 'Add Guests'}
           </button>
@@ -217,21 +245,24 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
         {/* Guest list */}
         {guests.length > 0 && (
           <section>
-            <h3 className="text-lg font-semibold text-stone-900 mb-3">Guests ({guests.length})</h3>
-            <div className="bg-white border border-stone-200 rounded-xl divide-y divide-stone-100">
+            <p className="text-[#C4826A] tracking-[0.2em] text-xs uppercase mb-4">
+              Guest List <span className="text-[#C4A090]">({guests.length})</span>
+            </p>
+            <div className="bg-white border border-[#EDE0D6] rounded-2xl divide-y divide-[#F5EFE9]">
               {guests.map((g) => (
-                <div key={g.id} className="flex items-center justify-between px-5 py-3">
+                <div key={g.id} className="flex items-center justify-between px-6 py-4">
                   <div>
-                    <p className="font-medium text-stone-900 text-sm">{g.name}</p>
-                    <p className="text-xs text-stone-400">{g.phone}</p>
+                    <p className="font-[family-name:var(--font-playfair)] text-[#3D3530]">{g.name}</p>
+                    <p className="text-xs text-[#C4A090] font-lato mt-0.5">{g.phone}</p>
                   </div>
                   <div className="flex items-center gap-3">
                     {g.invite_sent_at && (
-                      <span className="text-xs text-stone-400">Invited</span>
+                      <span className="text-xs text-[#C4A090] font-lato">Invited</span>
                     )}
-                    <span className={`text-xs px-2 py-1 rounded-full font-medium ${STATUS_COLOR[g.rsvp_status]}`}>
+                    <span className={`text-xs px-3 py-1 rounded-full font-lato ${STATUS_COLOR[g.rsvp_status]}`}>
                       {STATUS_LABEL[g.rsvp_status]}
                     </span>
+                    <CopyLinkButton token={g.invite_token} />
                   </div>
                 </div>
               ))}

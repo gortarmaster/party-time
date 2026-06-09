@@ -67,18 +67,18 @@ export default function RsvpPage({ params }: { params: Promise<{ token: string }
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-stone-50 flex items-center justify-center">
-        <p className="text-stone-400">Loading…</p>
+      <div className="min-h-screen bg-[#FAF7F2] flex items-center justify-center">
+        <p className="font-[family-name:var(--font-playfair)] text-[#C4A090] italic">One moment…</p>
       </div>
     )
   }
 
   if (notFound || !data) {
     return (
-      <div className="min-h-screen bg-stone-50 flex items-center justify-center px-6">
+      <div className="min-h-screen bg-[#FAF7F2] flex items-center justify-center px-6">
         <div className="text-center">
-          <p className="text-2xl">🤔</p>
-          <p className="text-stone-600 mt-2">This invite link doesn't seem right.</p>
+          <p className="font-[family-name:var(--font-playfair)] text-2xl text-[#C4A090] italic mb-2">Invite not found</p>
+          <p className="text-sm text-[#C4A090] font-lato font-light">This link may be invalid or expired.</p>
         </div>
       </div>
     )
@@ -87,85 +87,88 @@ export default function RsvpPage({ params }: { params: Promise<{ token: string }
   const event = data.events
 
   return (
-    <div className="min-h-screen bg-stone-50">
-      {event.header_image_url && (
-        <div className="w-full h-56 sm:h-72 overflow-hidden">
+    <div className="min-h-screen bg-[#FAF7F2]">
+      {/* Header image */}
+      {event.header_image_url ? (
+        <div className="w-full h-64 sm:h-80 overflow-hidden">
           <img src={event.header_image_url} alt="" className="w-full h-full object-cover" />
         </div>
+      ) : (
+        <div className="w-full h-32 bg-gradient-to-b from-[#EDE0D6] to-[#FAF7F2]" />
       )}
 
-      <div className="max-w-lg mx-auto px-6 py-10">
+      <div className="max-w-md mx-auto px-6 py-10">
         {confirmed ? (
-          <div className="text-center py-8">
-            <p className="text-4xl mb-4">
-              {confirmed === 'attending' ? '🎉' : confirmed === 'maybe' ? '🤷' : '💌'}
+          <div className="text-center py-6">
+            <p className="text-5xl mb-6">
+              {confirmed === 'attending' ? '🌸' : confirmed === 'maybe' ? '🌿' : '💌'}
             </p>
-            <h1 className="text-2xl font-semibold text-stone-900 mb-2">
+            <p className="text-[#C4826A] tracking-[0.2em] text-xs uppercase mb-2 font-lato">
+              {confirmed === 'attending' ? "You're on the list" : confirmed === 'maybe' ? 'We hope to see you' : 'We understand'}
+            </p>
+            <h1 className="font-[family-name:var(--font-playfair)] text-3xl text-[#3D3530] mb-4">
               {confirmed === 'attending'
-                ? "You're in!"
+                ? "See you there!"
                 : confirmed === 'maybe'
-                ? 'Got it — maybe!'
-                : "Thanks for letting us know"}
+                ? "Fingers crossed!"
+                : "Thank you for letting us know"}
             </h1>
-            <p className="text-stone-500 mb-1">
-              {confirmed === 'attending'
-                ? `We can't wait to see you at ${event.name}.`
-                : confirmed === 'maybe'
-                ? `We hope you can make it to ${event.name}.`
-                : `Sorry you can't make it to ${event.name}.`}
-            </p>
-            <p className="text-stone-400 text-sm mb-8">
-              {formatDate(event.date)} · {event.location}
-            </p>
+            <p className="text-[#C4A090] font-lato font-light mb-1">{event.name}</p>
+            <p className="text-[#C4A090] font-lato font-light text-sm">{formatDate(event.date)}</p>
+            <p className="text-[#C4A090] font-lato font-light text-sm mb-8">{event.location}</p>
 
             {event.amazon_wishlist_url && confirmed === 'attending' && (
               <a
                 href={event.amazon_wishlist_url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-block px-6 py-3 bg-stone-900 text-white rounded-xl font-medium hover:bg-stone-800"
+                className="inline-block px-8 py-3.5 bg-[#C4826A] text-white rounded-full font-lato font-light tracking-widest text-sm uppercase hover:bg-[#A6614C] transition-colors"
               >
-                View Wishlist 🎁
+                View the Wishlist 🎁
               </a>
             )}
 
             <button
               onClick={() => setConfirmed(null)}
-              className="block mx-auto mt-4 text-sm text-stone-400 hover:text-stone-600 underline"
+              className="block mx-auto mt-6 text-xs text-[#C4A090] hover:text-[#C4826A] tracking-widest uppercase underline underline-offset-4 transition-colors"
             >
               Change my response
             </button>
           </div>
         ) : (
           <div>
-            <p className="text-stone-400 text-sm font-medium mb-1 uppercase tracking-wide">You're invited</p>
-            <h1 className="text-3xl font-semibold text-stone-900 mb-2">{event.name}</h1>
-            <p className="text-stone-600 mb-1">{formatDate(event.date)}</p>
-            <p className="text-stone-500 mb-8">{event.location}</p>
+            <p className="text-[#C4826A] tracking-[0.2em] text-xs uppercase mb-2 font-lato">You're invited</p>
+            <h1 className="font-[family-name:var(--font-playfair)] text-4xl text-[#3D3530] mb-3 leading-tight">
+              {event.name}
+            </h1>
+            <p className="text-[#6B6560] font-lato font-light mb-1">{formatDate(event.date)}</p>
+            <p className="text-[#C4A090] font-lato font-light text-sm mb-10">{event.location}</p>
 
-            <p className="text-stone-700 mb-5">Hey {data.name}, will you be joining us?</p>
+            <p className="font-[family-name:var(--font-playfair)] text-lg text-[#3D3530] mb-8 italic">
+              Will you be joining us, {data.name}?
+            </p>
 
             <div className="space-y-3">
               <button
                 onClick={() => rsvp('attending')}
                 disabled={submitting}
-                className="w-full py-4 bg-stone-900 text-white rounded-2xl text-lg font-medium hover:bg-stone-800 disabled:opacity-50 transition-colors"
+                className="w-full py-4 bg-[#C4826A] text-white rounded-full font-lato font-light tracking-widest text-sm uppercase hover:bg-[#A6614C] disabled:opacity-50 transition-colors"
               >
-                Yes, I'll be there 🎉
+                Joyfully Accepts
               </button>
               <button
                 onClick={() => rsvp('maybe')}
                 disabled={submitting}
-                className="w-full py-4 bg-white border border-stone-300 text-stone-700 rounded-2xl text-lg font-medium hover:bg-stone-50 disabled:opacity-50 transition-colors"
+                className="w-full py-4 bg-white border border-[#EDE0D6] text-[#6B6560] rounded-full font-lato font-light tracking-widest text-sm uppercase hover:border-[#C4826A] hover:text-[#C4826A] disabled:opacity-50 transition-colors"
               >
                 Maybe
               </button>
               <button
                 onClick={() => rsvp('not_attending')}
                 disabled={submitting}
-                className="w-full py-4 text-stone-400 rounded-2xl text-base font-medium hover:text-stone-600 transition-colors"
+                className="w-full py-4 text-[#C4A090] rounded-full font-lato font-light tracking-widest text-sm uppercase hover:text-[#C4826A] disabled:opacity-50 transition-colors"
               >
-                Can't make it
+                Regretfully Declines
               </button>
             </div>
           </div>

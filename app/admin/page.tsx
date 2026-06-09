@@ -7,8 +7,7 @@ import type { Event } from '@/lib/supabase'
 
 function formatDate(dateStr: string) {
   return new Date(dateStr).toLocaleDateString('en-US', {
-    weekday: 'short',
-    month: 'short',
+    month: 'long',
     day: 'numeric',
     year: 'numeric',
   })
@@ -32,49 +31,52 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-stone-50">
-      <header className="bg-white border-b border-stone-200 px-6 py-4 flex items-center justify-between">
-        <h1 className="text-xl font-semibold text-stone-900">Party Time</h1>
-        <button onClick={logout} className="text-sm text-stone-500 hover:text-stone-700">
+    <div className="min-h-screen bg-[#FAF7F2]">
+      <header className="bg-white/80 backdrop-blur border-b border-[#EDE0D6] px-8 py-5 flex items-center justify-between">
+        <h1 className="font-[family-name:var(--font-playfair)] text-2xl text-[#3D3530] tracking-wide">Party Time</h1>
+        <button onClick={logout} className="text-xs text-[#C4826A] hover:text-[#A6614C] tracking-widest uppercase font-lato">
           Sign out
         </button>
       </header>
 
-      <main className="max-w-3xl mx-auto px-6 py-10">
-        <div className="flex items-center justify-between mb-8">
-          <h2 className="text-2xl font-semibold text-stone-900">Events</h2>
+      <main className="max-w-2xl mx-auto px-6 py-14">
+        <div className="flex items-end justify-between mb-10">
+          <div>
+            <p className="text-[#C4826A] tracking-[0.2em] text-xs uppercase mb-1">Your</p>
+            <h2 className="font-[family-name:var(--font-playfair)] text-4xl text-[#3D3530]">Events</h2>
+          </div>
           <Link
             href="/admin/events/new"
-            className="px-4 py-2 bg-stone-900 text-white rounded-lg text-sm font-medium hover:bg-stone-800"
+            className="px-6 py-2.5 bg-[#C4826A] text-white rounded-full text-xs font-lato tracking-widest uppercase hover:bg-[#A6614C] transition-colors"
           >
             + New Event
           </Link>
         </div>
 
         {loading ? (
-          <p className="text-stone-400">Loading…</p>
+          <p className="text-[#C4A090] text-center py-20 font-[family-name:var(--font-playfair)] italic">Loading…</p>
         ) : events.length === 0 ? (
-          <div className="text-center py-20 text-stone-400">
-            <p className="text-lg">No events yet.</p>
-            <p className="text-sm mt-1">Create your first event to get started.</p>
+          <div className="text-center py-24">
+            <p className="font-[family-name:var(--font-playfair)] text-2xl text-[#C4A090] italic mb-2">No events yet</p>
+            <p className="text-sm text-[#C4A090]">Create your first event to get started</p>
           </div>
         ) : (
-          <ul className="space-y-3">
+          <ul className="space-y-4">
             {events.map((event) => (
               <li key={event.id}>
                 <Link
                   href={`/admin/events/${event.id}`}
-                  className="block bg-white border border-stone-200 rounded-xl px-6 py-4 hover:border-stone-400 transition-colors"
+                  className="group flex items-center justify-between bg-white border border-[#EDE0D6] rounded-2xl px-7 py-5 hover:border-[#C4826A] hover:shadow-sm transition-all"
                 >
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium text-stone-900">{event.name}</p>
-                      <p className="text-sm text-stone-500 mt-0.5">
-                        {formatDate(event.date)} · {event.location}
-                      </p>
-                    </div>
-                    <span className="text-stone-400">→</span>
+                  <div>
+                    <p className="font-[family-name:var(--font-playfair)] text-lg text-[#3D3530] group-hover:text-[#C4826A] transition-colors">
+                      {event.name}
+                    </p>
+                    <p className="text-sm text-[#C4A090] mt-0.5 font-lato font-light">
+                      {formatDate(event.date)} · {event.location}
+                    </p>
                   </div>
+                  <span className="text-[#E8C5B8] group-hover:text-[#C4826A] transition-colors text-lg">→</span>
                 </Link>
               </li>
             ))}
