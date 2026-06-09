@@ -6,6 +6,7 @@ export interface Event {
   id: string
   name: string
   date: string
+  end_time: string | null
   location: string
   header_image_url: string | null
   amazon_wishlist_url: string | null

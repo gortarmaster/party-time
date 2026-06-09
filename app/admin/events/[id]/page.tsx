@@ -40,8 +40,8 @@ const STATUS_COLOR: Record<RsvpStatus, string> = {
   maybe: 'bg-[#FBF6EE] text-[#C49A4A]',
 }
 
-function formatDate(dateStr: string) {
-  return new Date(dateStr).toLocaleString('en-US', {
+function formatDateTime(dateStr: string, endTime?: string | null) {
+  const start = new Date(dateStr).toLocaleString('en-US', {
     weekday: 'long',
     month: 'long',
     day: 'numeric',
@@ -49,6 +49,7 @@ function formatDate(dateStr: string) {
     hour: 'numeric',
     minute: '2-digit',
   })
+  return endTime ? `${start} – ${endTime}` : start
 }
 
 export default function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -165,7 +166,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
           )}
           <p className="text-[#C4826A] tracking-[0.2em] text-xs uppercase mb-1">{event.location}</p>
           <h2 className="font-[family-name:var(--font-playfair)] text-4xl text-[#3D3530]">{event.name}</h2>
-          <p className="text-[#C4A090] font-lato font-light mt-1">{formatDate(event.date)}</p>
+          <p className="text-[#C4A090] font-lato font-light mt-1">{formatDateTime(event.date, event.end_time)}</p>
           {event.amazon_wishlist_url && (
             <a
               href={event.amazon_wishlist_url}

@@ -10,14 +10,15 @@ interface RsvpData {
   events: {
     name: string
     date: string
+    end_time: string | null
     location: string
     header_image_url: string | null
     amazon_wishlist_url: string | null
   }
 }
 
-function formatDate(dateStr: string) {
-  return new Date(dateStr).toLocaleString('en-US', {
+function formatDate(dateStr: string, endTime?: string | null) {
+  const start = new Date(dateStr).toLocaleString('en-US', {
     weekday: 'long',
     month: 'long',
     day: 'numeric',
@@ -25,6 +26,7 @@ function formatDate(dateStr: string) {
     hour: 'numeric',
     minute: '2-digit',
   })
+  return endTime ? `${start} – ${endTime}` : start
 }
 
 export default function RsvpPage({ params }: { params: Promise<{ token: string }> }) {
@@ -114,7 +116,7 @@ export default function RsvpPage({ params }: { params: Promise<{ token: string }
                 : "Thank you for letting us know"}
             </h1>
             <p className="text-[#C4A090] font-lato font-light mb-1">{event.name}</p>
-            <p className="text-[#C4A090] font-lato font-light text-sm">{formatDate(event.date)}</p>
+            <p className="text-[#C4A090] font-lato font-light text-sm">{formatDate(event.date, event.end_time)}</p>
             <p className="text-[#C4A090] font-lato font-light text-sm mb-8">{event.location}</p>
 
             {event.amazon_wishlist_url && confirmed === 'attending' && (
@@ -141,7 +143,7 @@ export default function RsvpPage({ params }: { params: Promise<{ token: string }
             <h1 className="font-[family-name:var(--font-playfair)] text-4xl text-[#3D3530] mb-3 leading-tight">
               {event.name}
             </h1>
-            <p className="text-[#6B6560] font-lato font-light mb-1">{formatDate(event.date)}</p>
+            <p className="text-[#6B6560] font-lato font-light mb-1">{formatDate(event.date, event.end_time)}</p>
             <p className="text-[#C4A090] font-lato font-light text-sm mb-10">{event.location}</p>
 
             <p className="font-[family-name:var(--font-playfair)] text-lg text-[#3D3530] mb-8 italic">

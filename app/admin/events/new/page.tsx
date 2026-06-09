@@ -5,6 +5,18 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
 
+// Converts "3:00 PM" → "15:00" for Date parsing
+function to24h(time: string): string {
+  const match = time.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i)
+  if (!match) return time // already 24h or unrecognized, pass through
+  let hours = parseInt(match[1])
+  const minutes = match[2]
+  const meridiem = match[3].toUpperCase()
+  if (meridiem === 'AM' && hours === 12) hours = 0
+  if (meridiem === 'PM' && hours !== 12) hours += 12
+  return `${String(hours).padStart(2, '0')}:${minutes}`
+}
+
 export default function NewEventPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
@@ -12,6 +24,8 @@ export default function NewEventPage() {
   const [form, setForm] = useState({
     name: '',
     date: '',
+    start_time: '',
+    end_time: '',
     location: '',
     header_image_url: '',
     amazon_wishlist_url: '',
@@ -53,10 +67,15 @@ export default function NewEventPage() {
     setLoading(true)
     setError('')
 
+    // Combine date + start_time into an ISO timestamp
+    const date = form.start_time
+      ? new Date(`${form.date}T${to24h(form.start_time)}`).toISOString()
+      : new Date(form.date).toISOString()
+
     const res = await fetch('/api/events', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(form),
+      body: JSON.stringify({ ...form, date, end_time: form.end_time || null }),
     })
 
     if (res.ok) {
@@ -100,14 +119,38 @@ export default function NewEventPage() {
           </div>
 
           <div>
-            <label className={labelClass}>Date & Time *</label>
+            <label className={labelClass}>Date *</label>
             <input
-              type="datetime-local"
+              type="date"
               value={form.date}
               onChange={(e) => set('date', e.target.value)}
               required
               className={inputClass}
             />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className={labelClass}>Start Time *</label>
+              <input
+                type="text"
+                value={form.start_time}
+                onChange={(e) => set('start_time', e.target.value)}
+                placeholder="3:00 PM"
+                required
+                className={inputClass}
+              />
+            </div>
+            <div>
+              <label className={labelClass}>End Time</label>
+              <input
+                type="text"
+                value={form.end_time}
+                onChange={(e) => set('end_time', e.target.value)}
+                placeholder="6:00 PM"
+                className={inputClass}
+              />
+            </div>
           </div>
 
           <div>
