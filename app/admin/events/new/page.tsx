@@ -1,8 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 
 export default function NewEventPage() {
   const router = useRouter()
@@ -15,13 +16,40 @@ export default function NewEventPage() {
     header_image_url: '',
     amazon_wishlist_url: '',
   })
+  const [imagePreview, setImagePreview] = useState<string | null>(null)
+  const [uploading, setUploading] = useState(false)
+  const fileRef = useRef<HTMLInputElement>(null)
 
   function set(field: string, value: string) {
     setForm((f) => ({ ...f, [field]: value }))
   }
 
+  async function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    setImagePreview(URL.createObjectURL(file))
+    setUploading(true)
+    setError('')
+
+    const fd = new FormData()
+    fd.append('file', file)
+
+    const res = await fetch('/api/upload', { method: 'POST', body: fd })
+    const data = await res.json()
+
+    if (res.ok) {
+      set('header_image_url', data.url)
+    } else {
+      setError(data.error || 'Image upload failed')
+      setImagePreview(null)
+    }
+    setUploading(false)
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
+    if (uploading) return
     setLoading(true)
     setError('')
 
@@ -94,15 +122,56 @@ export default function NewEventPage() {
             />
           </div>
 
+          {/* Header image upload */}
           <div>
-            <label className={labelClass}>Header Image URL</label>
+            <label className={labelClass}>Header Image</label>
+            <p className="text-xs text-[#C4A090] font-lato mb-3">
+              Best at <span className="text-[#C4826A]">1600 × 600 px</span> (landscape, 8:3 ratio) —
+              at least 1200 px wide. JPEG or PNG.
+            </p>
+
             <input
-              type="url"
-              value={form.header_image_url}
-              onChange={(e) => set('header_image_url', e.target.value)}
-              placeholder="https://…"
-              className={inputClass}
+              ref={fileRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              onChange={handleImageChange}
+              className="hidden"
             />
+
+            {imagePreview ? (
+              <div className="relative">
+                <img
+                  src={imagePreview}
+                  alt="Header preview"
+                  className="w-full h-40 object-cover rounded-2xl"
+                />
+                <div className="absolute inset-0 rounded-2xl bg-black/20 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+                  <button
+                    type="button"
+                    onClick={() => fileRef.current?.click()}
+                    className="px-4 py-2 bg-white text-[#3D3530] rounded-full text-xs font-lato tracking-widest uppercase"
+                  >
+                    {uploading ? 'Uploading…' : 'Change'}
+                  </button>
+                </div>
+                {uploading && (
+                  <div className="absolute inset-0 rounded-2xl bg-white/60 flex items-center justify-center">
+                    <p className="text-xs text-[#C4826A] font-lato tracking-widest uppercase">Uploading…</p>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => fileRef.current?.click()}
+                className="w-full h-36 border-2 border-dashed border-[#EDE0D6] rounded-2xl flex flex-col items-center justify-center gap-2 hover:border-[#C4826A] hover:bg-white transition-colors group"
+              >
+                <span className="text-2xl">🌸</span>
+                <span className="text-xs text-[#C4A090] group-hover:text-[#C4826A] font-lato tracking-widest uppercase transition-colors">
+                  Upload Photo
+                </span>
+              </button>
+            )}
           </div>
 
           <div>
@@ -116,14 +185,14 @@ export default function NewEventPage() {
             />
           </div>
 
-          {error && <p className="text-[#C4826A] text-sm">{error}</p>}
+          {error && <p className="text-[#C4826A] text-sm font-lato">{error}</p>}
 
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || uploading}
             className="w-full py-4 bg-[#C4826A] text-white rounded-full font-lato font-light tracking-widest text-sm uppercase hover:bg-[#A6614C] disabled:opacity-50 transition-colors mt-2"
           >
-            {loading ? 'Creating…' : 'Create Event'}
+            {loading ? 'Creating…' : uploading ? 'Waiting for upload…' : 'Create Event'}
           </button>
         </form>
       </main>
