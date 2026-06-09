@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx create-next-app@latest tmp-app --typescript --tailwind --app --no-src-dir --no-eslint --import-alias \"@/*\" --yes)",
+      "Bash(mv tmp-app/* tmp-app/.* .)",
+      "Bash(rmdir tmp-app *)",
+      "Bash(npm install *)",
+      "Bash(mkdir -p \"/Users/aaron.abercrombie/dev/party-time/app/admin/events/[id]\")",
+      "Bash(mkdir -p \"/Users/aaron.abercrombie/dev/party-time/app/rsvp/[token]\")",
+      "Bash(mkdir -p \"/Users/aaron.abercrombie/dev/party-time/app/api/events/[id]\")",
+      "Bash(mkdir -p \"/Users/aaron.abercrombie/dev/party-time/app/api/rsvp/[token]\")",
+      "Bash(mkdir -p \"/Users/aaron.abercrombie/dev/party-time/app/api/send-invites/[id]\")",
+      "Bash(npx tsc *)",
+      "Bash(npm run *)"
+    ]
+  }
+}
